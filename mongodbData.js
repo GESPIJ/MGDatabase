@@ -198,3 +198,104 @@ db.friends
     { $group: { _id: { age: "$age" }, allHobbies: { $push: "$hobbies" } } },
   ])
   .pretty();
+
+//Slicing arrays
+db.manyFriends
+  .aggregate([
+    { $project: { _id: 0, examScore: { $slice: ["$examScores", 2, 1] } } },
+    //{ $project: { _id: 0, examScore: { $slice: ["$examScores", -2] } } }
+    //{ $project: { _id: 0, examScore: { $slice: ["$examScores", 2] } } }
+  ])
+  .pretty();
+
+//Getting the length of the array
+db.friends
+  .aggregate([{ $project: { _id: 0, numScores: { $size: "$examScores" } } }])
+  .pretty();
+
+//Using filter operator
+db.friends
+  .aggregate([
+    {
+      $project: {
+        _id: 0,
+        scores: {
+          $filter: {
+            input: "$examScores",
+            as: "sc",
+            cond: { $gt: ["$$sc.score", 60] },
+          },
+        },
+      },
+    },
+  ])
+  .pretty();
+
+//Applying multiple operations to an array
+db.friends
+  .aggregate([
+    { $unwind: "$examScores" },
+    { $project: { _id: 1, name: 1, age: 1, score: "$examScores.score" } },
+    { $sort: { score: -1 } },
+    {
+      $group: {
+        _id: "$_id",
+        name: { $first: "$name" },
+        maxScore: { $max: "$score" },
+      },
+    },
+    { $sort: { maxScore: -1 } },
+  ])
+  .pretty();
+
+//Working with bucket
+db.persons
+  .aggregate([
+    {
+      $bucket: {
+        groupBy: "$dob.age",
+        boundaries: [18, 30, 40, 50, 60, 120],
+        output: {
+          numPersons: { $sum: 1 },
+          averageAge: { $avg: "$dob.age" },
+        },
+      },
+    },
+  ])
+  .pretty();
+
+db.persons
+  .aggregate([
+    {
+      $bucketAuto: {
+        groupBy: "$dob.age",
+        buckets: 5,
+        output: {
+          numPersons: { $sum: 1 },
+          averageAge: { $avg: "$dob.age" },
+        },
+      },
+    },
+  ])
+  .pretty();
+
+//Dividing into aditional stages
+db.persons
+  .aggregate([
+    { $match: { gender: "male" } },
+    {
+      $project: {
+        _id: 0,
+        gender: 1,
+        name: { $concat: ["$name.first", " ", "$name.last"] },
+        birthdate: { $toDate: "$dob.date" },
+      },
+    },
+    { $sort: { birthdate: 1 } },
+    { $skip: 10 },
+    { $limit: 10 },
+  ])
+  .pretty();
+
+//For adding the transformed data to another collection
+// { $out: "transformedPersons" }
