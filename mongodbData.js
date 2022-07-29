@@ -125,7 +125,7 @@ db.persons
   ])
   .pretty();
 
-//Changing the location as well
+//Using the shortcut for converting the data
 db.persons
   .aggregate([
     {
