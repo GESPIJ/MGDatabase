@@ -299,3 +299,14 @@ db.persons
 
 //For adding the transformed data to another collection
 // { $out: "transformedPersons" }
+
+//Dive around onto the official doc
+
+//$match
+//$group
+//$project
+//$sort
+//$unwind
+
+//Official Aggregation Framework Docs: https://docs.mongodb.com/manual/core/aggregation-pipeline/
+//Learn more about $cond: https://docs.mongodb.com/manual/reference/operator/aggregation/cond/
